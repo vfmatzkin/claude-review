@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci --no-audit --no-fund
+      - name: syntax check
+        run: |
+          set -e
+          node --check index.js
+          while IFS= read -r f; do
+            node --check "$f"
+          done < <(find src -name '*.js')

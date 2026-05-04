@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "claude-review": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/TO/claude-review-mcp/index.js"],
+      "env": {}
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "claude-review-mcp",
+  "version": "0.1.0",
+  "description": "MCP server that gives Claude Code 10 review and research tools, each backed by an isolated `claude` subprocess.",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "claude-review-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "selftest": "node index.js --selftest"
+  },
+  "license": "MIT",
+  "author": "Franco Matzkin <mcp@tzk.ar>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vfmatzkin/claude-review.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vfmatzkin/claude-review/issues"
+  },
+  "homepage": "https://mcp.tzk.ar",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "claude-code",
+    "code-review",
+    "ai-code-review"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "index.js",
+    "src/",
+    "claude-md-section.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.0"
+  }
+}
