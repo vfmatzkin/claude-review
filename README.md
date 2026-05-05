@@ -76,6 +76,27 @@ claude mcp add brave-search --scope user -e BRAVE_API_KEY=<your-key> -- npx -y @
 
 The committed `.mcp.example.json` only registers `claude-review` itself.
 
+## Optional: always-visible transcript path
+
+Each tool call already returns the spawned subprocess's `.jsonl` transcript path in its response footer, but the host model often summarizes that line away. To surface it deterministically (rendered by the harness, not the model), add a `PostToolUse` hook to your `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "mcp__claude-review__.*",
+      "hooks": [{
+        "type": "command",
+        "command": "jq -r '.tool_response[]?.text? // empty' | grep -oE '/[^[:space:]`]+\\.jsonl' | head -1 | awk 'NF{printf \"{\\\"systemMessage\\\":\\\"📄 transcript: %s — read with inspect_transcript\\\"}\\n\", $0}'",
+        "timeout": 5000
+      }]
+    }]
+  }
+}
+```
+
+After saving, open `/hooks` once (or restart the session) so Claude Code reloads the config. Every subsequent `mcp__claude-review__*` call will print a `📄 transcript: …` line you can hand to `inspect_transcript`.
+
 ## Architecture
 
 ```
