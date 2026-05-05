@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { resolvePathInRoots } from "../context.js";
 import { asTextTool } from "./_helpers.js";
 
-export function register(server, { router, grepRoots }) {
+export function register(server, { upstream, grepRoots }) {
   server.tool(
     "find_examples_of",
     "Find code examples in a project that match a natural-language description, not a literal regex. Returns matching files with the relevant lines. **IMPORTANT: use whenever you want to copy a pattern that is used elsewhere in the codebase but you do not know the exact syntax to grep for.** Goes beyond literal Grep by reasoning about intent.",
@@ -24,7 +24,7 @@ PATH: file:line-range
 WHY: one sentence on why it matches.
 SNIPPET: 5-15 verbatim lines from the file.
 Stop early once you have good matches; do not exhaustively explore.`;
-      return await router.execute(
+      return await upstream.execute(
         {
           systemPrompt,
           userPrompt: `Find examples of: ${description}`,

@@ -4,7 +4,7 @@ import { resolvePathInRoots, loadProjectContext, safeReadFile } from "../context
 import { gitLog, gitLogPatches } from "../git.js";
 import { asTextTool } from "./_helpers.js";
 
-export function register(server, { router, grepRoots }) {
+export function register(server, { upstream, grepRoots }) {
   server.tool(
     "code_archaeology",
     "Explain why a piece of code looks the way it does, using its git history and project context. Pre-collects the file's recent commit log and patches, then answers a question about provenance / motivation / evolution. **IMPORTANT: use whenever the user asks 'why is this here', 'what was this trying to fix', or 'how did this evolve' for a specific file.** You do not need to run git yourself.",
@@ -40,8 +40,8 @@ No fences, no preamble.`;
         log || "(no git history)",
         patches ? `\n---RECENT PATCHES (last ${patch_count})---\n${patches}` : "",
       ].join("\n");
-      return await router.execute(
-        { systemPrompt, userPrompt, projectPath: cwd, maxTokens: 4096 },
+      return await upstream.execute(
+        { systemPrompt, userPrompt, projectPath: cwd },
       );
     })
   );

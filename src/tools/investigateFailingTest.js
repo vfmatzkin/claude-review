@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { resolvePathInRoots } from "../context.js";
 import { asTextTool } from "./_helpers.js";
 
-export function register(server, { router, grepRoots }) {
+export function register(server, { upstream, grepRoots }) {
   server.tool(
     "investigate_failing_test",
     "Investigate why a specific test is failing. The session reads the test, the code under test, related fixtures, and recent edits, then returns the most likely root cause and a suggested fix. **IMPORTANT: use this whenever the user describes or pastes a test failure and asks why or how to fix it.** Read-only — does not modify any files.",
@@ -28,7 +28,7 @@ Be concrete. Do not over-explore.`;
       const userPrompt = failure_output
         ? `Test: ${test_identifier}\n\n---FAILURE OUTPUT---\n${failure_output}`
         : `Test: ${test_identifier}`;
-      return await router.execute(
+      return await upstream.execute(
         { systemPrompt, userPrompt, projectPath: target },
       );
     })

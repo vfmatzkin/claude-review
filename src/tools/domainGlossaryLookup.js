@@ -2,7 +2,7 @@ import { z } from "zod";
 import { readFileSync, existsSync } from "node:fs";
 import { asTextTool } from "./_helpers.js";
 
-export function register(server, { router, glossaryPath, domainHint }) {
+export function register(server, { upstream, glossaryPath, domainHint }) {
   const glossaryText = glossaryPath && existsSync(glossaryPath) ? readFileSync(glossaryPath, "utf8") : "";
   const domain = domainHint || "this team's domain";
 
@@ -22,8 +22,8 @@ export function register(server, { router, glossaryPath, domainHint }) {
         ? `${baseRole} Use the curated notes below as ground truth; supplement from general knowledge only where the notes are silent. Mark anything not directly supported by the notes as "(inferred)".\n\n---NOTES---\n${glossaryText}`
         : `${baseRole} If a term is not unambiguous from general industry knowledge, give your best inference and clearly mark it as "(inferred — verify with team)".`;
       const userPrompt = context ? `Term: ${term}\nContext: ${context}` : `Term: ${term}`;
-      return await router.execute(
-        { systemPrompt, userPrompt, maxTokens: 1024 },
+      return await upstream.execute(
+        { systemPrompt, userPrompt },
       );
     })
   );

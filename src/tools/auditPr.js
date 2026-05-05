@@ -4,7 +4,7 @@ import { resolvePathInRoots } from "../context.js";
 import { gitDiffRange } from "../git.js";
 import { asTextTool } from "./_helpers.js";
 
-export function register(server, { router, grepRoots }) {
+export function register(server, { upstream, grepRoots }) {
   server.tool(
     "audit_pr",
     "Thoroughly review a pull request / branch diff with full project context. Reads the modified files, the surrounding code, and the project's conventions before reporting findings. **IMPORTANT: use this INSTEAD OF reviewing a diff inline whenever the change spans more than ~3 files or you want a grounded second opinion before pushing.** Returns BLOCKERS / SUGGESTIONS / NOTES.",
@@ -25,7 +25,7 @@ SUGGESTIONS: should-fix (clarity, robustness, missing tests where it matters).
 NOTES: minor observations, optional.
 Focus: ${focus}. No fluff. No restating what the diff does.`;
       const userPrompt = `Diff (${base_ref}...${head_ref}) — modified files:\n${diff}`;
-      return await router.execute(
+      return await upstream.execute(
         { systemPrompt, userPrompt, projectPath: target },
       );
     })

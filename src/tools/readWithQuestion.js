@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { resolvePathInRoots, loadProjectContext, safeReadFile, numberLines } from "../context.js";
 import { asTextTool } from "./_helpers.js";
 
-export function register(server, { router, grepRoots }) {
+export function register(server, { upstream, grepRoots }) {
   server.tool(
     "read_with_question",
     "Read a file and answer a focused question about it WITHOUT loading the file body into your context. Returns only the answer plus a few cited lines, never the full file. **IMPORTANT: use this INSTEAD OF the Read tool whenever you only need to answer a specific question about a file rather than seeing its full content.** Especially valuable for files > 500 lines, but works for any size.",
@@ -21,8 +21,8 @@ export function register(server, { router, grepRoots }) {
         ? `${baseSys}\n\nPROJECT CONTEXT (loaded from CLAUDE.md files in the file's directory tree, treat as authoritative on conventions):\n${projectContext}`
         : baseSys;
       const userPrompt = `Question: ${question}\n\n---FILE: ${abs}---\n${numberLines(body)}`;
-      return await router.execute(
-        { systemPrompt, userPrompt, projectPath: dirname(abs), maxTokens: 4096 },
+      return await upstream.execute(
+        { systemPrompt, userPrompt, projectPath: dirname(abs) },
       );
     })
   );

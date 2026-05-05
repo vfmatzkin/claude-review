@@ -39,7 +39,7 @@ npm run selftest
 A tool is one file in `src/tools/`. Mirror an existing one. Each tool:
 
 1. Imports `asTextTool` from `_helpers.js`.
-2. Exports `register(server, deps)` where `deps` is the same object `index.js` builds (`{ router, grepRoots, glossaryPath, domainHint }`).
+2. Exports `register(server, deps)` where `deps` is the same object `index.js` builds (`{ upstream, grepRoots, glossaryPath, domainHint }`).
 3. Registers exactly one `server.tool(name, description, schema, handler)`.
 4. Has a description that tells Claude *when* to reach for it (the `**IMPORTANT:**` cue), not just what it does.
 

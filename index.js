@@ -22,7 +22,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-import { ClaudeUpstream, Router } from "./src/upstream.js";
+import { ClaudeUpstream } from "./src/upstream.js";
 
 import * as readWithQuestion from "./src/tools/readWithQuestion.js";
 import * as researchProject from "./src/tools/researchProject.js";
@@ -44,16 +44,15 @@ const config = {
     process.env.REVIEW_DOMAIN_HINT || "the current software project",
 };
 
-const primary = new ClaudeUpstream({
+const upstream = new ClaudeUpstream({
   claudeBin: config.claudeBin,
   claudeConfigDir: config.claudeConfigDir,
 });
-const router = new Router({ primary });
 
 const server = new McpServer({ name: "claude-review-mcp", version: "0.1.0" });
 
 const deps = {
-  router,
+  upstream,
   grepRoots: [config.project],
   glossaryPath: config.glossaryPath,
   domainHint: config.domainHint,
@@ -79,7 +78,7 @@ if (process.argv.includes("--selftest")) {
   console.error(`[selftest] project: ${config.project}`);
   console.error(`[selftest] tools registered: ${modules.length}`);
   try {
-    const out = await primary.execute({
+    const out = await upstream.execute({
       systemPrompt: "You answer in one short sentence.",
       userPrompt: "Say 'selftest ok' and nothing else.",
       timeoutMs: 60_000,

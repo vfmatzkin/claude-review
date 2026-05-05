@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { resolvePathInRoots, loadProjectContext, safeReadFile } from "../context.js";
 import { asTextTool } from "./_helpers.js";
 
-export function register(server, { router, grepRoots }) {
+export function register(server, { upstream, grepRoots }) {
   server.tool(
     "compare_files",
     "Compare two files at the meaning level (behavior, intent, or performance), not character level. Reads both files internally so you do not need to Read them yourself. **IMPORTANT: use this INSTEAD OF Read-then-reason whenever you need to know whether two implementations are equivalent, what changed in semantics between two versions of a file, or how two specs relate.** Returns SAME / DIFFERENT / VERDICT structure.",
@@ -31,9 +31,9 @@ No fluff, no character-level diff, no markdown fences.`;
       const systemPrompt = projectContext
         ? `${baseSys}\n\nPROJECT CONTEXT:\n${projectContext}`
         : baseSys;
-      const userPrompt = `---FILE A: ${absA}---\n${a}\n\n---FILE B: ${absB}---\n${b}`;
-      return await router.execute(
-        { systemPrompt, userPrompt, projectPath: dirname(absA), maxTokens: 2048 },
+      const userPrompt = `Compare these two files for ${focus}. Respond with the SAME / DIFFERENT / VERDICT format from the system instructions.\n\n---FILE A: ${absA}---\n${a}\n\n---FILE B: ${absB}---\n${b}`;
+      return await upstream.execute(
+        { systemPrompt, userPrompt, projectPath: dirname(absA) },
       );
     })
   );

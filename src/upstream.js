@@ -23,6 +23,19 @@ function sanitizeEnv(parent) {
   return out;
 }
 
+// Excerpt long buffers as "head ... [truncated N chars] ... tail" so error
+// messages preserve both the actual error (usually at the start) and any
+// useful tail context. 800/400 = 1200 chars total cap per stream.
+function excerptHeadTail(buf, headMax = 800, tailMax = 400) {
+  if (!buf) return "";
+  const trimmed = buf;
+  if (trimmed.length <= headMax + tailMax) return trimmed.trim();
+  const head = trimmed.slice(0, headMax).trim();
+  const tail = trimmed.slice(-tailMax).trim();
+  const dropped = trimmed.length - headMax - tailMax;
+  return `${head}\n...[truncated ${dropped} chars]...\n${tail}`;
+}
+
 // Track active children for graceful shutdown.
 const activeChildren = new Set();
 let signalsBound = false;
@@ -91,9 +104,13 @@ export class ClaudeUpstream {
     let best = null;
     let bestMtime = -1;
     for (const [path, mtime] of after) {
-      const before = snapshotBefore.get(path);
-      const grew = before === undefined || mtime > before;
-      if (grew && mtime > bestMtime) {
+      // Only files that did NOT exist before the subprocess started.
+      // `claude -p` always creates a new session file, so the transcript
+      // we want is necessarily new. A pre-existing file whose mtime
+      // bumped during our window is overwhelmingly a parallel session
+      // writing to its own transcript, not ours.
+      if (snapshotBefore.has(path)) continue;
+      if (mtime > bestMtime) {
         best = path;
         bestMtime = mtime;
       }
@@ -160,9 +177,11 @@ export class ClaudeUpstream {
           resolveP(stdout.trim() || "(empty response)");
         } else {
           // Surface BOTH stdout (often a partial-but-useful response)
-          // and stderr (the actual error). Cap each excerpt.
-          const errExcerpt = stderr.slice(-1000).trim();
-          const outExcerpt = stdout.slice(-1000).trim();
+          // and stderr (the actual error). Show head AND tail of each
+          // — the head usually contains the real error message, the
+          // tail often shows where the upstream choked.
+          const errExcerpt = excerptHeadTail(stderr);
+          const outExcerpt = excerptHeadTail(stdout);
           const detail = [
             errExcerpt && `stderr: ${errExcerpt}`,
             outExcerpt && `stdout (partial): ${outExcerpt}`,
@@ -174,20 +193,5 @@ export class ClaudeUpstream {
 
     const transcriptPath = this._findTranscript(projectsDir, snapshotBefore);
     return { text, source: "claude", transcriptPath };
-  }
-}
-
-/**
- * Single-upstream router. Kept as a seam in case future versions add
- * fallbacks; today it just forwards to the primary.
- */
-export class Router {
-  constructor({ primary }) {
-    if (!primary) throw new Error("Router needs a primary upstream");
-    this.primary = primary;
-  }
-
-  async execute(opts) {
-    return await this.primary.execute(opts);
   }
 }
